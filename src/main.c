@@ -5,29 +5,25 @@
 Window *window;
 TextLayer *text_layer;
 int uniqueID = 0; // for distinguishing pebbles
+int dataKey = 0; // for use in sendData() function
 
 static Window *s_main_window;
 static TextLayer *s_output_layer;
+
+// create dictionary, send data to pebblekit JS
+void sendData(int x, int y, int z){
+  // Prepare dictionary
+  DictionaryIterator *iterator;
+  app_message_outbox_begin(&iterator);
   
-// itoa, to convert num to string str with base 10
-char* itoa(int i, char b[]){
-    char const digit[] = "0123456789";
-    char* p = b;
-    if(i<0){
-        *p++ = '-';
-        i *= -1;
-    }
-    int shifter = i;
-    do{ //Move to where representation ends
-        ++p;
-        shifter = shifter/10;
-    }while(shifter);
-    *p = '\0';
-    do{ //Move back, inserting digits as u go
-        *--p = digit[i%10];
-        i = i/10;
-    }while(i);
-    return b;
+  // Write data
+  dict_write_int(iterator, dataKey, &x, sizeof(int), true /* signed */);
+  dict_write_int(iterator, dataKey, &y, sizeof(int), true /* signed */);
+  dict_write_int(iterator, dataKey, &z, sizeof(int), true /* signed */);
+  
+  // Send the data!
+  dataKey++;
+  app_message_outbox_send();
 }
 
 // generate user's ID, (very) roughly in range 1 - 2**30
