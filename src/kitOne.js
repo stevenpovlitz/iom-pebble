@@ -14,8 +14,17 @@ Pebble.addEventListener('appmessage',
   function(e) {
     numRecieved++;
     console.log("Mesage # " + numRecieved);
-    console.log('Received message: ' + JSON.stringify(e.payload));
+    console.log('Received message: ' + JSON.stringify(e));
 
+    if (numRecieved % 3 === 1){
+      console.log("X: " + JSON.stringify(e.payload));
+    }
+    else if (numRecieved % 3 === 2){
+      console.log("Y: " + JSON.stringify(e.payload));
+    }
+    else if (numRecieved % 3 === 0){
+      console.log("Z: " + JSON.stringify(e.payload));
+    } else {console.log("shit's fucked");}
   }
 );
 

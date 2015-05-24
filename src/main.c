@@ -5,17 +5,21 @@
 Window *window;
 TextLayer *text_layer;
 int uniqueID = 0; // for distinguishing pebbles
-static int dataKey = 55; // for use in sendData() function
+#define KEY_DATA 55 // for use in sendData() function
 
 static Window *s_main_window;
 static TextLayer *s_output_layer;
 
+
 // create dictionary, send data to pebblekit JS
-void sendData(int x, int y, int z){
+void sendData(int x){
   
   // trying to get things working here
-  printf("%d,%d", (int)app_message_inbox_size_maximum(), (int)app_message_outbox_size_maximum());
+  // printf("%d,%d", (int)app_message_inbox_size_maximum(), (int)app_message_outbox_size_maximum());
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+  
+  // to satisfy my curiosity of how large is an int really
+  printf("Max size of an int: %d",sizeof(int));
   
   // Prepare dictionary
   DictionaryIterator *iterator;
@@ -23,7 +27,7 @@ void sendData(int x, int y, int z){
   
   // Write data
   printf("we got to just before dict_write_int"); // ghetto debugging
-  dict_write_int(iterator, dataKey, &x, sizeof(int), true);
+  dict_write_int(iterator, KEY_DATA, &x, sizeof(int), true);
   //dict_write_int(iterator, dataKey, &y, sizeof(int), true /* signed */);
   //dict_write_int(iterator, dataKey, &z, sizeof(int), true /* signed */);
   
@@ -33,8 +37,9 @@ void sendData(int x, int y, int z){
 
 // testing with tap event
 static void tap_handler(AccelAxisType axis, int32_t direction) {
-  printf("We have triggered a tap event");
-  sendData(500,200,1000);
+  printf("Tap event part 1");
+  int param = 678;
+  sendData(param);
 }
 
 // generate user's ID, (very) roughly in range 1 - 2**30
