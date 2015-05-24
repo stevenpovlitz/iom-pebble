@@ -5,25 +5,36 @@
 Window *window;
 TextLayer *text_layer;
 int uniqueID = 0; // for distinguishing pebbles
-int dataKey = 0; // for use in sendData() function
+static int dataKey = 55; // for use in sendData() function
 
 static Window *s_main_window;
 static TextLayer *s_output_layer;
 
 // create dictionary, send data to pebblekit JS
 void sendData(int x, int y, int z){
+  
+  // trying to get things working here
+  printf("%d,%d", (int)app_message_inbox_size_maximum(), (int)app_message_outbox_size_maximum());
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+  
   // Prepare dictionary
   DictionaryIterator *iterator;
   app_message_outbox_begin(&iterator);
   
   // Write data
-  dict_write_int(iterator, dataKey, &x, sizeof(int), true /* signed */);
-  dict_write_int(iterator, dataKey, &y, sizeof(int), true /* signed */);
-  dict_write_int(iterator, dataKey, &z, sizeof(int), true /* signed */);
+  printf("we got to just before dict_write_int"); // ghetto debugging
+  dict_write_int(iterator, dataKey, &x, sizeof(int), true);
+  //dict_write_int(iterator, dataKey, &y, sizeof(int), true /* signed */);
+  //dict_write_int(iterator, dataKey, &z, sizeof(int), true /* signed */);
   
   // Send the data!
-  dataKey++;
   app_message_outbox_send();
+}
+
+// testing with tap event
+static void tap_handler(AccelAxisType axis, int32_t direction) {
+  printf("We have triggered a tap event");
+  sendData(500,200,1000);
 }
 
 // generate user's ID, (very) roughly in range 1 - 2**30
@@ -70,13 +81,16 @@ void handle_init(void) {
     .unload = main_window_unload
   });
   window_stack_push(s_main_window, true);
+  
+  accel_tap_service_subscribe(tap_handler); // testing with tap event
 }
 
 // free up memory
 void handle_deinit(void) {
 	// Destroy the text layer
 	text_layer_destroy(text_layer);
-	
+  
+	accel_tap_service_unsubscribe(); // testing with tap event
 	// Destroy the window
 	window_destroy(window);
 }

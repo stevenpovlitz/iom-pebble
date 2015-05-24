@@ -8,12 +8,14 @@ Pebble.addEventListener('ready',
 );
 
 var numRecieved = 0;
+
 // will run callback function every time an app message is recieved
 Pebble.addEventListener('appmessage',
   function(e) {
     numRecieved++;
-    console.log("This is the " + numRecieved + "th message recieved.");
+    console.log("Mesage # " + numRecieved);
     console.log('Received message: ' + JSON.stringify(e.payload));
+
   }
 );
 

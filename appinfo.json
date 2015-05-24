@@ -1,5 +1,7 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "dataKey": 55
+    },
     "capabilities": [
         ""
     ],
