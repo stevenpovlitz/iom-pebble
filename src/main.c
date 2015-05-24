@@ -10,6 +10,7 @@ int uniqueID = 0; // for distinguishing pebbles
 static Window *s_main_window;
 static TextLayer *s_output_layer;
 
+int accelCounter = 0;
 
 // create dictionary, send data to pebblekit JS
 void sendData(int x){
@@ -18,29 +19,34 @@ void sendData(int x){
   // printf("%d,%d", (int)app_message_inbox_size_maximum(), (int)app_message_outbox_size_maximum());
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   
-  // to satisfy my curiosity of how large is an int really
-  printf("Max size of an int: %d",sizeof(int));
-  
   // Prepare dictionary
   DictionaryIterator *iterator;
   app_message_outbox_begin(&iterator);
   
   // Write data
-  printf("we got to just before dict_write_int"); // ghetto debugging
-  dict_write_int(iterator, KEY_DATA, &x, sizeof(int), true);
+//   printf("we got to just before dict_write_int"); // ghetto debugging
+  dict_write_int(iterator, KEY_DATA, &x, sizeof(int), false);
   //dict_write_int(iterator, dataKey, &y, sizeof(int), true /* signed */);
   //dict_write_int(iterator, dataKey, &z, sizeof(int), true /* signed */);
   
   // Send the data!
   app_message_outbox_send();
+  dict_write_end(iterator);
 }
 
-// testing with tap event
-static void tap_handler(AccelAxisType axis, int32_t direction) {
-  printf("Tap event part 1");
-  int param = 678;
-  sendData(param);
+static void data_handler(AccelData *data, uint32_t num_samples) {
+  if (accelCounter % 10 == 5 && ((accelCounter / 10) % 2 == 0)){ // removed " accelCounter % 10 == 0 || "
+    
+    // format all accel data into one int, loose a little precision
+    // WON'T WORK - NEGATIVES CAN'T BE ADDED TO POS WITHOUT LOOSING THEIR SIGN!!!!! (fuqqqqq)
+    int result = (data[0].x / 10 * 1000000) + (data[0].y / 10 * 1000) + (data[0].z / 10);
+    printf("%d, %d, %d" ,(data[0].x / 10 * 1000000), (data[0].y / 10 * 1000), (data[0].z / 10));
+    printf("Result, formatted: %10d", result);
+    sendData(result);
+  }
+  accelCounter++;
 }
+
 
 // generate user's ID, (very) roughly in range 1 - 2**30
 void generateID() {
@@ -87,7 +93,12 @@ void handle_init(void) {
   });
   window_stack_push(s_main_window, true);
   
-  accel_tap_service_subscribe(tap_handler); // testing with tap event
+  // Subscribe to the accelerometer data service
+  int num_samples = 1;
+  accel_data_service_subscribe(num_samples, data_handler);
+  
+  // Choose update rate
+  accel_service_set_sampling_rate(ACCEL_SAMPLING_10HZ);
 }
 
 // free up memory
@@ -95,7 +106,7 @@ void handle_deinit(void) {
 	// Destroy the text layer
 	text_layer_destroy(text_layer);
   
-	accel_tap_service_unsubscribe(); // testing with tap event
+	accel_data_service_unsubscribe(); // testing with tap event
 	// Destroy the window
 	window_destroy(window);
 }
